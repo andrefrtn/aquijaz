@@ -21,6 +21,8 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as EditarMemoriaIdRouteImport } from './routes/editar-memoria.$id'
 import { Route as MemoriaIdRouteImport } from './routes/memoria.$id'
+import { Route as PerfilIdRouteImport } from './routes/perfil.$id'
+import { Route as UsuarioIdRouteImport } from './routes/usuario.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +84,16 @@ const MemoriaIdRoute = MemoriaIdRouteImport.update({
   path: '/memoria/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerfilIdRoute = PerfilIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PerfilRoute,
+} as any)
+const UsuarioIdRoute = UsuarioIdRouteImport.update({
+  id: '/usuario/$id',
+  path: '/usuario/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -92,10 +104,12 @@ export interface FileRoutesByFullPath {
   '/explorar': typeof ExplorarRoute
   '/login': typeof LoginRoute
   '/memorias': typeof MemoriasRoute
-  '/perfil': typeof PerfilRoute
+  '/perfil': typeof PerfilRouteWithChildren
   '/sobre': typeof SobreRoute
   '/editar-memoria/$id': typeof EditarMemoriaIdRoute
   '/memoria/$id': typeof MemoriaIdRoute
+  '/perfil/$id': typeof PerfilIdRoute
+  '/usuario/$id': typeof UsuarioIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -106,10 +120,12 @@ export interface FileRoutesByTo {
   '/explorar': typeof ExplorarRoute
   '/login': typeof LoginRoute
   '/memorias': typeof MemoriasRoute
-  '/perfil': typeof PerfilRoute
+  '/perfil': typeof PerfilRouteWithChildren
   '/sobre': typeof SobreRoute
   '/editar-memoria/$id': typeof EditarMemoriaIdRoute
   '/memoria/$id': typeof MemoriaIdRoute
+  '/perfil/$id': typeof PerfilIdRoute
+  '/usuario/$id': typeof UsuarioIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,10 +137,12 @@ export interface FileRoutesById {
   '/explorar': typeof ExplorarRoute
   '/login': typeof LoginRoute
   '/memorias': typeof MemoriasRoute
-  '/perfil': typeof PerfilRoute
+  '/perfil': typeof PerfilRouteWithChildren
   '/sobre': typeof SobreRoute
   '/editar-memoria/$id': typeof EditarMemoriaIdRoute
   '/memoria/$id': typeof MemoriaIdRoute
+  '/perfil/$id': typeof PerfilIdRoute
+  '/usuario/$id': typeof UsuarioIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +159,8 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/editar-memoria/$id'
     | '/memoria/$id'
+    | '/perfil/$id'
+    | '/usuario/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +175,8 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/editar-memoria/$id'
     | '/memoria/$id'
+    | '/perfil/$id'
+    | '/usuario/$id'
   id:
     | '__root__'
     | '/'
@@ -169,6 +191,8 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/editar-memoria/$id'
     | '/memoria/$id'
+    | '/perfil/$id'
+    | '/usuario/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -180,10 +204,11 @@ export interface RootRouteChildren {
   ExplorarRoute: typeof ExplorarRoute
   LoginRoute: typeof LoginRoute
   MemoriasRoute: typeof MemoriasRoute
-  PerfilRoute: typeof PerfilRoute
+  PerfilRoute: typeof PerfilRouteWithChildren
   SobreRoute: typeof SobreRoute
   EditarMemoriaIdRoute: typeof EditarMemoriaIdRoute
   MemoriaIdRoute: typeof MemoriaIdRoute
+  UsuarioIdRoute: typeof UsuarioIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -272,8 +297,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MemoriaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/perfil/$id': {
+      id: '/perfil/$id'
+      path: '/$id'
+      fullPath: '/perfil/$id'
+      preLoaderRoute: typeof PerfilIdRouteImport
+      parentRoute: typeof PerfilRoute
+    }
+    '/usuario/$id': {
+      id: '/usuario/$id'
+      path: '/usuario/$id'
+      fullPath: '/usuario/$id'
+      preLoaderRoute: typeof UsuarioIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface PerfilRouteChildren {
+  PerfilIdRoute: typeof PerfilIdRoute
+}
+
+const PerfilRouteChildren: PerfilRouteChildren = {
+  PerfilIdRoute: PerfilIdRoute,
+}
+
+const PerfilRouteWithChildren =
+  PerfilRoute._addFileChildren(PerfilRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -284,10 +334,11 @@ const rootRouteChildren: RootRouteChildren = {
   ExplorarRoute: ExplorarRoute,
   LoginRoute: LoginRoute,
   MemoriasRoute: MemoriasRoute,
-  PerfilRoute: PerfilRoute,
+  PerfilRoute: PerfilRouteWithChildren,
   SobreRoute: SobreRoute,
   EditarMemoriaIdRoute: EditarMemoriaIdRoute,
   MemoriaIdRoute: MemoriaIdRoute,
+  UsuarioIdRoute: UsuarioIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

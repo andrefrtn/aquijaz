@@ -31,10 +31,19 @@ export function PersonCard({ person }: PersonCardProps) {
         <p className="mt-1 text-sm text-muted-foreground">
           {formatLifespan(person.birthDate, person.deathDate)} · {person.city}
         </p>
-        {person.authorName ? (
-          <p className="mt-2 text-xs text-muted-foreground">Publicado por {person.authorName}</p>
-        ) : null}
       </Link>
+      {person.authorName ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Publicado por{" "}
+          {person.authorId ? (
+            <Link to="/usuario/$id" params={{ id: person.authorId }} className="font-semibold text-primary hover:text-accent">
+              {person.authorName}
+            </Link>
+          ) : (
+            person.authorName
+          )}
+        </p>
+      ) : null}
       <LikeButton person={person} />
     </article>
   );

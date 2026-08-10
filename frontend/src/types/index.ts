@@ -84,10 +84,11 @@ export interface Notification {
   actorId: string;
   actorName: string;
   actorAvatarUrl?: string;
-  type: "like" | "story" | "story_reply" | "reply";
+  type: "like" | "story" | "story_reply" | "reply" | "friend_request" | "friend_accept";
   message: string;
   personId?: string;
   storyId?: string;
+  profileUserId?: string;
   read: boolean;
   createdAt: string;
 }
@@ -99,6 +100,18 @@ export interface User {
   city?: string;
   memberSince: string;
   avatarUrl: string;
+  friends?: string[];
+  incomingFriendRequests?: string[];
+  outgoingFriendRequests?: string[];
+}
+
+export interface PublicUserProfile {
+  id: string;
+  name: string;
+  city?: string;
+  memberSince: string;
+  avatarUrl: string;
+  friends?: string[];
 }
 
 export interface CreateMemoryInput {

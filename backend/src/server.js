@@ -9,7 +9,16 @@ import {
   saveContent,
   stories,
 } from "./data.js";
-import { getUserByToken, loginUser, logoutUser, registerUser } from "./authStore.js";
+import {
+  acceptFriendship,
+  getPublicUserById,
+  getUserByToken,
+  loginUser,
+  logoutUser,
+  registerUser,
+  removeFriendship,
+  requestFriendship,
+} from "./authStore.js";
 
 const PORT = Number(process.env.PORT ?? 3001);
 
@@ -96,7 +105,7 @@ function sortByRelevance(list) {
   });
 }
 
-function createNotification({ userId, actor, type, message, personId, storyId }) {
+function createNotification({ userId, actor, type, message, personId, storyId, profileUserId }) {
   if (!userId || userId === actor.id) return;
 
   notifications.unshift({
@@ -109,6 +118,7 @@ function createNotification({ userId, actor, type, message, personId, storyId })
     message,
     personId,
     storyId,
+    profileUserId,
     read: false,
     createdAt: new Date().toISOString(),
   });
@@ -413,6 +423,85 @@ const server = http.createServer(async (req, res) => {
       });
       await saveContent();
       send(res, 200, { ok: true });
+      return;
+    }
+
+    if (req.method === "GET" && path.startsWith("/api/users/")) {
+      const id = decodeURIComponent(path.split("/").at(-1) ?? "");
+      const profile = await getPublicUserById(id);
+
+      if (!profile) {
+        send(res, 404, { message: "Perfil não encontrado." });
+        return;
+      }
+
+      send(res, 200, profile);
+      return;
+    }
+
+    if (req.method === "POST" && path.startsWith("/api/users/") && path.endsWith("/friend-request")) {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+
+      const targetId = decodeURIComponent(path.split("/").at(-2) ?? "");
+      const result = await requestFriendship(user.id, targetId);
+
+      if (result.error) {
+        send(res, result.status, { message: result.error });
+        return;
+      }
+
+      if (result.status === 201) {
+        createNotification({
+        userId: targetId,
+        actor: user,
+        type: "friend_request",
+        message: `${user.name} quer adicionar você como amizade.`,
+        profileUserId: user.id,
+      });
+        await saveContent();
+      }
+      send(res, result.status, { profile: result.profile, state: result.state });
+      return;
+    }
+
+    if (req.method === "POST" && path.startsWith("/api/users/") && path.endsWith("/friend-accept")) {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+
+      const requesterId = decodeURIComponent(path.split("/").at(-2) ?? "");
+      const result = await acceptFriendship(user.id, requesterId);
+
+      if (result.error) {
+        send(res, result.status, { message: result.error });
+        return;
+      }
+
+      createNotification({
+        userId: requesterId,
+        actor: user,
+        type: "friend_accept",
+        message: `${user.name} aceitou sua solicitação de amizade.`,
+        profileUserId: user.id,
+      });
+      await saveContent();
+      send(res, 200, result.profile);
+      return;
+    }
+
+    if (req.method === "POST" && path.startsWith("/api/users/") && path.endsWith("/friend-remove")) {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+
+      const otherUserId = decodeURIComponent(path.split("/").at(-2) ?? "");
+      const result = await removeFriendship(user.id, otherUserId);
+
+      if (result.error) {
+        send(res, result.status, { message: result.error });
+        return;
+      }
+
+      send(res, 200, result.profile);
       return;
     }
 

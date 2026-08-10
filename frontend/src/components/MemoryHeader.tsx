@@ -49,7 +49,16 @@ export function MemoryHeader({ person, photoCount, canManage = false, onDelete }
                 className="h-9 w-9 rounded-full object-cover"
               />
             ) : null}
-            <span>Publicado por {person.authorName}</span>
+            <span>
+              Publicado por{" "}
+              {person.authorId ? (
+                <Link to="/usuario/$id" params={{ id: person.authorId }} className="font-semibold text-primary hover:text-accent">
+                  {person.authorName}
+                </Link>
+              ) : (
+                person.authorName
+              )}
+            </span>
           </div>
         ) : null}
         <div className="mt-8 flex flex-wrap gap-3">

@@ -26,6 +26,7 @@ function CadastroPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [city, setCity] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -37,6 +38,7 @@ function CadastroPage() {
     const nextErrors: Record<string, string> = {};
     if (name.trim().length < 3) nextErrors["name"] = "Informe seu nome.";
     if (!/^\S+@\S+\.\S+$/.test(email)) nextErrors["email"] = "Informe um e-mail válido.";
+    if (city.trim().length < 2) nextErrors["city"] = "Informe sua cidade.";
     if (password.length < 6) nextErrors["password"] = "A senha deve ter ao menos 6 caracteres.";
     if (password !== confirm) nextErrors["confirm"] = "As senhas não coincidem.";
     setErrors(nextErrors);
@@ -44,7 +46,7 @@ function CadastroPage() {
 
     setSubmitting(true);
     try {
-      await signUp(name.trim(), email.trim(), password, "", avatarUrl);
+      await signUp(name.trim(), email.trim(), password, city.trim(), avatarUrl);
       await signIn(email.trim(), password);
       toast.success("Conta criada e sessão iniciada com sucesso.");
       void navigate({ to: "/perfil" });
@@ -81,6 +83,14 @@ function CadastroPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             {...(errors["email"] ? { error: errors["email"] } : {})}
+          />
+          <Input
+            label="Cidade"
+            autoComplete="address-level2"
+            required
+            value={city}
+            onChange={(event) => setCity(event.target.value)}
+            {...(errors["city"] ? { error: errors["city"] } : {})}
           />
           <UploadArea
             label="Foto de perfil"

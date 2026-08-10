@@ -65,7 +65,13 @@ export function StoryCard({ story }: StoryCardProps) {
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">{story.author}</span>
+            {story.authorId ? (
+              <Link to="/usuario/$id" params={{ id: story.authorId }} className="font-semibold text-primary hover:text-accent">
+                {story.author}
+              </Link>
+            ) : (
+              <span className="font-semibold text-foreground">{story.author}</span>
+            )}
             {story.year ? <span>{story.year}</span> : null}
             <span>{formatRelativeTime(story.createdAt)}</span>
           </div>
@@ -100,9 +106,29 @@ export function StoryCard({ story }: StoryCardProps) {
                 )}
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      {reply.targetAuthor ? `${reply.author} > ${reply.targetAuthor}` : reply.author}
-                    </span>{" "}
+                    {reply.authorId ? (
+                      <Link to="/usuario/$id" params={{ id: reply.authorId }} className="font-semibold text-primary hover:text-accent">
+                        {reply.author}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-foreground">{reply.author}</span>
+                    )}
+                    {reply.targetAuthor ? (
+                      <>
+                        <span className="font-semibold text-foreground"> &gt; </span>
+                        {reply.targetAuthorId ? (
+                          <Link
+                            to="/usuario/$id"
+                            params={{ id: reply.targetAuthorId }}
+                            className="font-semibold text-primary hover:text-accent"
+                          >
+                            {reply.targetAuthor}
+                          </Link>
+                        ) : (
+                          <span className="font-semibold text-foreground">{reply.targetAuthor}</span>
+                        )}
+                      </>
+                    ) : null}{" "}
                     comentou{" "}
                     {formatRelativeTime(reply.createdAt)}
                   </p>

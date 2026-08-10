@@ -28,7 +28,16 @@ export function FeaturedMemory({ person }: FeaturedMemoryProps) {
           {formatLifespan(person.birthDate, person.deathDate)} · {person.city}, {person.country}
         </p>
         {person.authorName ? (
-          <p className="mt-2 text-xs text-muted-foreground">Publicado por {person.authorName}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Publicado por{" "}
+            {person.authorId ? (
+              <Link to="/usuario/$id" params={{ id: person.authorId }} className="font-semibold text-primary hover:text-accent">
+                {person.authorName}
+              </Link>
+            ) : (
+              person.authorName
+            )}
+          </p>
         ) : null}
         <p className="mt-6 max-w-prose text-[0.95rem] leading-relaxed text-foreground/85">
           {person.biography}

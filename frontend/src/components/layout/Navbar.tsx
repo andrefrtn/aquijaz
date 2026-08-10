@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, Menu, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
+import { FriendRequestsMenu } from "@/components/FriendRequestsMenu";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearToken, getCurrentUser, getToken, logout } from "@/services/authService";
@@ -79,6 +80,7 @@ export function Navbar() {
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <ThemeToggle />
+          <FriendRequestsMenu />
           <NotificationBell />
           <Link
             to="/explorar"
