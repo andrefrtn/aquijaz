@@ -33,6 +33,25 @@ export function PhotoViewer({ photo, onClose }: PhotoViewerProps) {
               <dt className="rule-label text-muted-foreground">Autor</dt>
               <dd className="mt-1">{photo.author ?? "Autor desconhecido"}</dd>
             </div>
+            <div>
+              <dt className="rule-label text-muted-foreground">Enviada por</dt>
+              <dd className="mt-1">
+                {photo.uploaderName ? (
+                  <span className="inline-flex items-center gap-2">
+                    {photo.uploaderAvatarUrl ? (
+                      <img
+                        src={photo.uploaderAvatarUrl}
+                        alt={`Foto de ${photo.uploaderName}`}
+                        className="h-7 w-7 rounded-full object-cover"
+                      />
+                    ) : null}
+                    {photo.uploaderName}
+                  </span>
+                ) : (
+                  "Usuário não informado"
+                )}
+              </dd>
+            </div>
           </dl>
         </div>
       </div>

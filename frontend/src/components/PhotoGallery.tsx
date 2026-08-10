@@ -27,6 +27,9 @@ export function PhotoGallery({ photos, onSelect }: PhotoGalleryProps) {
               {photo.approximateDate}
               {photo.location ? ` · ${photo.location}` : ""}
             </p>
+            {photo.uploaderName ? (
+              <p className="mt-1 text-xs text-muted-foreground">Enviada por {photo.uploaderName}</p>
+            ) : null}
           </button>
         </li>
       ))}

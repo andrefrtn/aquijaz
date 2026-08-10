@@ -3,7 +3,9 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
-import { signUp } from "@/services/authService";
+import { UploadArea } from "@/components/UploadArea";
+import { ApiError } from "@/lib/api/client";
+import { signIn, signUp } from "@/services/authService";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
@@ -24,6 +26,7 @@ function CadastroPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,9 +44,13 @@ function CadastroPage() {
 
     setSubmitting(true);
     try {
-      await signUp(name.trim(), email);
-      toast.success("Conta criada (demonstração local).");
+      await signUp(name.trim(), email.trim(), password, "", avatarUrl);
+      await signIn(email.trim(), password);
+      toast.success("Conta criada e sessão iniciada com sucesso.");
       void navigate({ to: "/perfil" });
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Não foi possível criar a conta agora.";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -55,11 +62,12 @@ function CadastroPage() {
         <p className="rule-label text-sage">Conta</p>
         <h1 className="font-display mt-3 text-4xl md:text-5xl">Criar conta</h1>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          Ambiente de demonstração: os dados ficam apenas nesta sessão.
+          Anexe uma foto de perfil ou deixe em branco para usar a imagem padrão.
         </p>
         <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-6">
           <Input
             label="Nome"
+            autoComplete="name"
             required
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -68,15 +76,22 @@ function CadastroPage() {
           <Input
             label="E-mail"
             type="email"
+            autoComplete="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             {...(errors["email"] ? { error: errors["email"] } : {})}
           />
+          <UploadArea
+            label="Foto de perfil"
+            onFileSelected={(_, previewUrl) => setAvatarUrl(previewUrl)}
+            {...(errors["avatarUrl"] ? { error: errors["avatarUrl"] } : {})}
+          />
           <div className="grid gap-6 sm:grid-cols-2">
             <Input
               label="Senha"
               type="password"
+              autoComplete="new-password"
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -85,6 +100,7 @@ function CadastroPage() {
             <Input
               label="Confirmar senha"
               type="password"
+              autoComplete="new-password"
               required
               value={confirm}
               onChange={(event) => setConfirm(event.target.value)}

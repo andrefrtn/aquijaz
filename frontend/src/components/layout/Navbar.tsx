@@ -1,7 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { Menu, Plus, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut, Menu, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
+import { clearToken, getCurrentUser, getToken, logout } from "@/services/authService";
 
 const links = [
   { to: "/explorar", label: "Explorar" },
@@ -10,14 +12,54 @@ const links = [
 ] as const;
 
 export function Navbar() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [authVersion, setAuthVersion] = useState(0);
+  const hasToken = typeof window !== "undefined" && Boolean(getToken());
+
+  useEffect(() => {
+    const updateAuthState = () => setAuthVersion((value) => value + 1);
+    window.addEventListener("aquijaz-auth-changed", updateAuthState);
+    updateAuthState();
+
+    return () => window.removeEventListener("aquijaz-auth-changed", updateAuthState);
+  }, []);
+
+  const userQuery = useQuery({
+    queryKey: ["current-user", authVersion],
+    queryFn: async () => {
+      try {
+        return await getCurrentUser();
+      } catch {
+        clearToken();
+        return null;
+      }
+    },
+    enabled: hasToken,
+    retry: false,
+  });
+  const user = userQuery.data;
+
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      clearToken();
+    }
+    setOpen(false);
+    void navigate({ to: "/" });
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-[2px]">
       <div className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 md:px-10">
         <div className="flex min-w-0 items-center gap-10">
-          <Link to="/" className="font-display shrink-0 text-xl tracking-[0.22em] text-primary">
-            AQUIJAZ
+          <Link to="/" aria-label="Aquijaz" className="shrink-0">
+            <img
+              src="/aquijaz-logo.png"
+              alt="Aquijaz"
+              className="h-12 w-28 object-contain"
+            />
           </Link>
           <nav aria-label="Navegação principal" className="hidden items-center gap-8 lg:flex">
             {links.map((link) => (
@@ -42,8 +84,14 @@ export function Navbar() {
             <Search size={17} aria-hidden="true" />
           </Link>
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link to="/login">Entrar</Link>
+            <Link to={user ? "/perfil" : "/login"}>{user ? `Olá, ${user.name}!` : "Entrar"}</Link>
           </Button>
+          {user ? (
+            <Button type="button" variant="outline" size="sm" onClick={handleLogout} className="hidden sm:inline-flex">
+              <LogOut size={15} aria-hidden="true" />
+              Sair
+            </Button>
+          ) : null}
           <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link to="/criar-memoria">
               <Plus size={15} aria-hidden="true" />
@@ -58,7 +106,7 @@ export function Navbar() {
             aria-label={open ? "Fechar menu" : "Abrir menu"}
             className="inline-flex h-11 w-11 items-center justify-center border border-border lg:hidden"
           >
-            {open ? <Menu size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+            <Menu size={18} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -76,9 +124,23 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link to="/login" onClick={() => setOpen(false)} className="border-b border-border/70 py-4 text-sm font-medium">
-              Entrar
+            <Link
+              to={user ? "/perfil" : "/login"}
+              onClick={() => setOpen(false)}
+              className="border-b border-border/70 py-4 text-sm font-medium"
+            >
+              {user ? `Olá, ${user.name}!` : "Entrar"}
             </Link>
+            {user ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2 border-b border-border/70 py-4 text-left text-sm font-medium"
+              >
+                <LogOut size={15} aria-hidden="true" />
+                Sair da conta
+              </button>
+            ) : null}
             <div className="py-4">
               <Button asChild className="w-full">
                 <Link to="/criar-memoria" onClick={() => setOpen(false)}>

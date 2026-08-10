@@ -17,10 +17,16 @@ export function UploadArea({ label = "Fotografia", onFileSelected, error }: Uplo
 
   function handleFile(file: File | undefined) {
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    setFileName(file.name);
-    onFileSelected(file.name, url);
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const previewUrl = String(reader.result ?? "");
+      setPreview(previewUrl);
+      setFileName(file.name);
+      onFileSelected(file.name, previewUrl);
+    };
+
+    reader.readAsDataURL(file);
   }
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {

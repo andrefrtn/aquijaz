@@ -50,7 +50,7 @@ function SobrePage() {
           {[
             {
               title: "Um arquivo, não uma rede",
-              text: "Não há curtidas, seguidores nem cronologia infinita. Há fichas, imagens e texto. O tempo de leitura é o do papel.",
+              text: "As curtidas ajudam memórias relevantes a aparecerem primeiro, mas o foco continua nas fichas, imagens e textos. O tempo de leitura é o do papel.",
             },
             {
               title: "Colaborativo por natureza",

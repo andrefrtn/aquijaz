@@ -6,10 +6,11 @@ import type {
   Person,
   Photo,
   Story,
+  UpdateMemoryInput,
   UploadPhotoInput,
 } from "@/types";
 
-export type SortOrder = "recentes" | "antigos" | "az" | "za";
+export type SortOrder = "relevantes" | "recentes" | "antigos" | "az" | "za";
 
 export interface PeopleQuery {
   search?: string;
@@ -58,6 +59,25 @@ export async function createMemory(input: CreateMemoryInput): Promise<Person> {
   return request<Person>("/people", {
     method: "POST",
     body: JSON.stringify(input),
+  });
+}
+
+export async function updateMemory(id: string, input: UpdateMemoryInput): Promise<Person> {
+  return request<Person>(`/people/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteMemory(id: string): Promise<void> {
+  await request<{ ok: boolean }>(`/people/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function toggleLikeMemory(id: string): Promise<{ person: Person; liked: boolean }> {
+  return request<{ person: Person; liked: boolean }>(`/people/${encodeURIComponent(id)}/like`, {
+    method: "POST",
   });
 }
 

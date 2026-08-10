@@ -30,6 +30,11 @@ export interface Person {
   country: string;
   category: Category;
   coverPhotoUrl: string;
+  authorId?: string;
+  authorName?: string;
+  authorAvatarUrl?: string;
+  likeCount?: number;
+  likedBy?: string[];
   featured?: boolean;
   createdAt: string;
 }
@@ -42,6 +47,9 @@ export interface Photo {
   approximateDate: string;
   location?: string;
   author?: string;
+  uploaderId?: string;
+  uploaderName?: string;
+  uploaderAvatarUrl?: string;
   createdAt: string;
 }
 
@@ -61,7 +69,7 @@ export interface User {
   email: string;
   city?: string;
   memberSince: string;
-  avatarUrl?: string;
+  avatarUrl: string;
 }
 
 export interface CreateMemoryInput {
@@ -76,9 +84,12 @@ export interface CreateMemoryInput {
   coverPhotoUrl?: string;
 }
 
+export type UpdateMemoryInput = CreateMemoryInput;
+
 export interface UploadPhotoInput {
   personId: string;
   fileName: string;
+  previewUrl?: string;
   description: string;
   approximateDate: string;
   location?: string;

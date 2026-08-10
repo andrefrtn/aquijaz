@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
+import { ApiError } from "@/lib/api/client";
 import { signIn } from "@/services/authService";
 
 export const Route = createFileRoute("/login")({
@@ -34,9 +35,13 @@ function LoginPage() {
 
     setSubmitting(true);
     try {
-      await signIn(email);
-      toast.success("Sessão iniciada (demonstração local).");
+      await signIn(email, password);
+      toast.success("Sessão iniciada com sucesso.");
       void navigate({ to: "/perfil" });
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Não foi possível entrar agora.";
+      setErrors({ password: message });
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -55,12 +60,13 @@ function LoginPage() {
         <p className="rule-label text-sage">Conta</p>
         <h1 className="font-display mt-3 text-4xl md:text-5xl">Entrar</h1>
         <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
-          Ambiente de demonstração: nenhum dado é enviado a servidores.
+          Entre para publicar memórias, enviar fotografias e ver apenas dados criados por usuários.
         </p>
         <form onSubmit={handleSubmit} noValidate className="mt-8 max-w-md space-y-6">
           <Input
             label="E-mail"
             type="email"
+            autoComplete="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -69,6 +75,7 @@ function LoginPage() {
           <Input
             label="Senha"
             type="password"
+            autoComplete="current-password"
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}

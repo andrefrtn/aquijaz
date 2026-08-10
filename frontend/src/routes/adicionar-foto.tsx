@@ -32,13 +32,16 @@ export const Route = createFileRoute("/adicionar-foto")({
 function AdicionarFotoPage() {
   const { pessoa } = Route.useSearch();
   const navigate = useNavigate();
+  const canFetch = typeof window !== "undefined";
   const peopleQuery = useQuery({
     queryKey: ["people", "todas"],
     queryFn: () => getPeople({ pageSize: 100 }),
+    enabled: canFetch,
   });
 
   const [personId, setPersonId] = useState(pessoa);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [approximateDate, setApproximateDate] = useState("");
   const [location, setLocation] = useState("");
@@ -63,6 +66,7 @@ function AdicionarFotoPage() {
       await uploadPhoto({
         personId,
         fileName: fileName as string,
+        ...(previewUrl ? { previewUrl } : {}),
         description: description.trim(),
         approximateDate: approximateDate.trim(),
         ...(location.trim() ? { location: location.trim() } : {}),
@@ -105,7 +109,10 @@ function AdicionarFotoPage() {
             ))}
           </SelectField>
           <UploadArea
-            onFileSelected={(name) => setFileName(name)}
+            onFileSelected={(name, preview) => {
+              setFileName(name);
+              setPreviewUrl(preview);
+            }}
             {...(errors["file"] ? { error: errors["file"] } : {})}
           />
           <Textarea

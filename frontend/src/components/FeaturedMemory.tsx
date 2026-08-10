@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { LikeButton } from "@/components/LikeButton";
 import { formatLifespan } from "@/lib/format";
 import type { Person } from "@/types";
 
@@ -26,10 +27,16 @@ export function FeaturedMemory({ person }: FeaturedMemoryProps) {
         <p className="mt-2 text-sm text-muted-foreground">
           {formatLifespan(person.birthDate, person.deathDate)} · {person.city}, {person.country}
         </p>
+        {person.authorName ? (
+          <p className="mt-2 text-xs text-muted-foreground">Publicado por {person.authorName}</p>
+        ) : null}
         <p className="mt-6 max-w-prose text-[0.95rem] leading-relaxed text-foreground/85">
           {person.biography}
         </p>
         <div className="mt-8">
+          <div className="mb-4">
+            <LikeButton person={person} />
+          </div>
           <Button asChild variant="outline">
             <Link to="/memoria/$id" params={{ id: person.id }}>
               Ver arquivo completo

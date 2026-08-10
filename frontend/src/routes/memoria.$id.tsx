@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/common/Button";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
@@ -10,7 +11,9 @@ import { PhotoViewer } from "@/components/PhotoViewer";
 import { StoryCard } from "@/components/StoryCard";
 import { Timeline, type TimelineItem } from "@/components/Timeline";
 import { formatYear } from "@/lib/format";
-import { getPersonById, getPhotos, getStories } from "@/services/peopleService";
+import { ApiError } from "@/lib/api/client";
+import { getCurrentUser } from "@/services/authService";
+import { deleteMemory, getPersonById, getPhotos, getStories } from "@/services/peopleService";
 import type { Person, Photo } from "@/types";
 
 export const Route = createFileRoute("/memoria/$id")({
@@ -66,11 +69,14 @@ function buildTimeline(person: Person, photoCount: number): TimelineItem[] {
 
 function MemoriaPage() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<Photo | null>(null);
+  const canFetch = typeof window !== "undefined";
 
-  const personQuery = useQuery({ queryKey: ["person", id], queryFn: () => getPersonById(id) });
-  const photosQuery = useQuery({ queryKey: ["photos", id], queryFn: () => getPhotos(id) });
-  const storiesQuery = useQuery({ queryKey: ["stories", id], queryFn: () => getStories(id) });
+  const personQuery = useQuery({ queryKey: ["person", id], queryFn: () => getPersonById(id), enabled: canFetch });
+  const photosQuery = useQuery({ queryKey: ["photos", id], queryFn: () => getPhotos(id), enabled: canFetch });
+  const storiesQuery = useQuery({ queryKey: ["stories", id], queryFn: () => getStories(id), enabled: canFetch });
+  const userQuery = useQuery({ queryKey: ["current-user"], queryFn: getCurrentUser, enabled: canFetch, retry: false });
 
   if (personQuery.isPending) {
     return (
@@ -98,10 +104,24 @@ function MemoriaPage() {
 
   const person = personQuery.data;
   const photos = photosQuery.data ?? [];
+  const canManage = Boolean(userQuery.data?.id && person.authorId === userQuery.data.id);
+
+  async function handleDelete() {
+    if (!window.confirm("Tem certeza que deseja apagar este post?")) return;
+
+    try {
+      await deleteMemory(person.id);
+      toast.success("Post apagado com sucesso.");
+      void navigate({ to: "/memorias" });
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Não foi possível apagar este post.";
+      toast.error(message);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 py-12 md:px-10 md:py-20">
-      <MemoryHeader person={person} photoCount={photos.length} />
+      <MemoryHeader person={person} photoCount={photos.length} canManage={canManage} onDelete={handleDelete} />
 
       <section aria-labelledby="galeria" className="mt-24">
         <div className="mb-8 grid gap-4 border-b border-border pb-6 sm:flex sm:items-end sm:justify-between">

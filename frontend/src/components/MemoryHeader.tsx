@@ -1,15 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { ImagePlus, MapPin } from "lucide-react";
+import { Edit3, ImagePlus, MapPin, Trash2 } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { LikeButton } from "@/components/LikeButton";
 import { formatLifespan } from "@/lib/format";
 import type { Person } from "@/types";
 
 interface MemoryHeaderProps {
   person: Person;
   photoCount: number;
+  canManage?: boolean;
+  onDelete?: () => void;
 }
 
-export function MemoryHeader({ person, photoCount }: MemoryHeaderProps) {
+export function MemoryHeader({ person, photoCount, canManage = false, onDelete }: MemoryHeaderProps) {
   return (
     <header className="grid gap-10 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-14">
       <div className="border border-border bg-beige">
@@ -37,13 +40,40 @@ export function MemoryHeader({ person, photoCount }: MemoryHeaderProps) {
         <p className="mt-6 max-w-prose text-[1.02rem] leading-relaxed text-foreground/85">
           {person.biography}
         </p>
-        <div className="mt-8">
+        {person.authorName ? (
+          <div className="mt-6 flex items-center gap-3 text-sm text-muted-foreground">
+            {person.authorAvatarUrl ? (
+              <img
+                src={person.authorAvatarUrl}
+                alt={`Foto de ${person.authorName}`}
+                className="h-9 w-9 rounded-full object-cover"
+              />
+            ) : null}
+            <span>Publicado por {person.authorName}</span>
+          </div>
+        ) : null}
+        <div className="mt-8 flex flex-wrap gap-3">
+          <LikeButton person={person} variant="button" />
           <Button asChild>
             <Link to="/adicionar-foto" search={{ pessoa: person.id }}>
               <ImagePlus size={16} aria-hidden="true" />
               Adicionar fotografia
             </Link>
           </Button>
+          {canManage ? (
+            <>
+              <Button asChild variant="outline">
+                <Link to="/editar-memoria/$id" params={{ id: person.id }}>
+                  <Edit3 size={16} aria-hidden="true" />
+                  Editar post
+                </Link>
+              </Button>
+              <Button type="button" variant="outline" onClick={onDelete}>
+                <Trash2 size={16} aria-hidden="true" />
+                Apagar post
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
     </header>

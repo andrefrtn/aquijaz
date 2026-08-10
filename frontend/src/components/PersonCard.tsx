@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Person } from "@/types";
 import { formatLifespan } from "@/lib/format";
+import { LikeButton } from "@/components/LikeButton";
 
 interface PersonCardProps {
   person: Person;
@@ -30,7 +31,11 @@ export function PersonCard({ person }: PersonCardProps) {
         <p className="mt-1 text-sm text-muted-foreground">
           {formatLifespan(person.birthDate, person.deathDate)} · {person.city}
         </p>
+        {person.authorName ? (
+          <p className="mt-2 text-xs text-muted-foreground">Publicado por {person.authorName}</p>
+        ) : null}
       </Link>
+      <LikeButton person={person} />
     </article>
   );
 }
