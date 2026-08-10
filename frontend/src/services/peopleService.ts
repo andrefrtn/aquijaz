@@ -1,11 +1,14 @@
 ﻿import { request } from "@/lib/api/client";
 import type {
   Category,
+  CreateStoryReplyInput,
+  CreateStoryInput,
   CreateMemoryInput,
   Paginated,
   Person,
   Photo,
   Story,
+  StoryReply,
   UpdateMemoryInput,
   UploadPhotoInput,
 } from "@/types";
@@ -53,6 +56,20 @@ export async function getPhotos(personId?: string): Promise<Photo[]> {
 
 export async function getStories(personId: string): Promise<Story[]> {
   return request<Story[]>(`/stories?personId=${encodeURIComponent(personId)}`);
+}
+
+export async function createStory(input: CreateStoryInput): Promise<Story> {
+  return request<Story>("/stories", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function createStoryReply(storyId: string, input: CreateStoryReplyInput): Promise<StoryReply> {
+  return request<StoryReply>(`/stories/${encodeURIComponent(storyId)}/replies`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function createMemory(input: CreateMemoryInput): Promise<Person> {

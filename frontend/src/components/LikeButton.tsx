@@ -56,7 +56,9 @@ export function LikeButton({ person, variant = "compact" }: LikeButtonProps) {
       aria-label={label}
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
-      className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
+      className={`mt-3 inline-flex items-center gap-1.5 text-xs font-semibold transition-colors hover:text-primary disabled:opacity-60 ${
+        liked ? "text-accent" : "text-muted-foreground"
+      }`}
     >
       <Heart size={14} aria-hidden="true" fill={liked ? "currentColor" : "none"} />
       {likeCount} {likeCount === 1 ? "curtida" : "curtidas"}

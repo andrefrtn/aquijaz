@@ -155,10 +155,19 @@ function MemoriaPage() {
 
       <div className="mt-24 grid gap-16 md:grid-cols-[1.3fr_1fr] md:gap-20">
         <section aria-labelledby="historias">
-          <p className="rule-label text-sage">Histórias e lembranças</p>
-          <h2 id="historias" className="font-display mt-2 text-3xl md:text-4xl">
-            O que contam sobre {person.knownAs ?? person.fullName}
-          </h2>
+          <div className="grid gap-4 border-b border-border pb-4 sm:flex sm:items-end sm:justify-between">
+            <div>
+              <p className="rule-label text-sage">Histórias e lembranças</p>
+              <h2 id="historias" className="font-display mt-2 text-3xl md:text-4xl">
+                O que contam sobre {person.knownAs ?? person.fullName}
+              </h2>
+            </div>
+            <Button asChild variant="outline">
+              <Link to="/adicionar-historia" search={{ pessoa: person.id }}>
+                Adicionar história
+              </Link>
+            </Button>
+          </div>
           <div className="mt-8 space-y-8">
             {storiesQuery.data?.length ? (
               storiesQuery.data.map((story) => <StoryCard key={story.id} story={story} />)

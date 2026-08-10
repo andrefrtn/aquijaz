@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { Archive, ArrowRight, BookOpen, Film, Landmark, Music, Palette, Trophy, UsersRound } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { LoadingState } from "@/components/common/LoadingState";
 import { FeaturedMemory } from "@/components/FeaturedMemory";
 import { PersonCard } from "@/components/PersonCard";
 import { SearchBar } from "@/components/SearchBar";
 import { getFeaturedPeople, getRecentPeople } from "@/services/peopleService";
-import { CATEGORIES } from "@/types";
+import { CATEGORIES, type Category } from "@/types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -45,6 +45,17 @@ const heroPhotos = [
     className: "aspect-[3/4]",
   },
 ];
+
+const categoryIcons: Record<Category, typeof Music> = {
+  Música: Music,
+  Cinema: Film,
+  Literatura: BookOpen,
+  Arte: Palette,
+  Esporte: Trophy,
+  História: Landmark,
+  Família: UsersRound,
+  Outras: Archive,
+};
 
 function Index() {
   const navigate = useNavigate();
@@ -112,24 +123,37 @@ function Index() {
         </div>
       </section>
 
-      <section aria-labelledby="categorias" className="border-y border-border bg-secondary/40">
-        <div className="mx-auto max-w-[1400px] px-5 py-10 md:px-10 md:py-12">
-          <h2 id="categorias" className="font-display text-3xl md:text-4xl">
-            Explore memórias
-          </h2>
-          <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-muted-foreground">
-            Percorra o arquivo pelos ofícios, afetos e trajetórias que atravessam as fotografias.
-          </p>
-          <ul className="mt-8 grid grid-cols-2 gap-px border border-border bg-border sm:grid-cols-4">
+      <section aria-labelledby="categorias" className="border-y border-border bg-card">
+        <div className="mx-auto max-w-[1400px] px-5 py-8 md:px-10 md:py-10">
+          <div className="grid gap-3 sm:flex sm:items-end sm:justify-between">
+            <div>
+              <p className="rule-label text-sage">Categorias</p>
+              <h2 id="categorias" className="font-display mt-2 text-3xl md:text-4xl">
+                Explore memórias
+              </h2>
+            </div>
+            <Link to="/explorar" search={{ q: "" }} className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+              Ver arquivo completo <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          </div>
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {CATEGORIES.map((category) => (
               <li key={category}>
+                {(() => {
+                  const Icon = categoryIcons[category];
+                  return (
                 <Link
                   to="/explorar"
-                  search={{ q: "" }}
-                  className="flex h-24 items-end bg-background p-4 transition-colors hover:bg-card md:h-28"
+                  search={{ q: "", categoria: category }}
+                  className="group flex min-h-24 items-center gap-3 rounded-xs border border-border bg-background p-4 transition-colors hover:border-primary hover:bg-secondary/60"
                 >
-                  <span className="font-display text-xl md:text-2xl">{category}</span>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Icon size={18} aria-hidden="true" />
+                  </span>
+                  <span className="font-display text-xl leading-tight">{category}</span>
                 </Link>
+                  );
+                })()}
               </li>
             ))}
           </ul>

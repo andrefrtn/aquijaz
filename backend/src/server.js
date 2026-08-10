@@ -3,6 +3,7 @@ import {
   DEFAULT_GALLERY_PHOTO_URL,
   DEFAULT_MEMORY_PHOTO_URL,
   loadContent,
+  notifications,
   people,
   photos,
   saveContent,
@@ -95,6 +96,24 @@ function sortByRelevance(list) {
   });
 }
 
+function createNotification({ userId, actor, type, message, personId, storyId }) {
+  if (!userId || userId === actor.id) return;
+
+  notifications.unshift({
+    id: `notification-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    userId,
+    actorId: actor.id,
+    actorName: actor.name,
+    actorAvatarUrl: actor.avatarUrl,
+    type,
+    message,
+    personId,
+    storyId,
+    read: false,
+    createdAt: new Date().toISOString(),
+  });
+}
+
 function matches(person, params) {
   const term = params.get("search")?.trim().toLowerCase();
   const category = params.get("category");
@@ -156,6 +175,90 @@ async function createPhoto(input, uploader) {
   return photo;
 }
 
+async function createStory(input, author) {
+  const person = people.find((item) => item.id === input.personId);
+
+  if (!person) return { status: 404, error: "Memória não encontrada." };
+
+  const story = {
+    id: `${input.personId}-story-${Date.now().toString(36)}`,
+    personId: input.personId,
+    title: input.title,
+    content: input.content,
+    author: author.name,
+    authorId: author.id,
+    authorAvatarUrl: author.avatarUrl,
+    ...(input.year ? { year: input.year } : {}),
+    replies: [],
+    createdAt: new Date().toISOString(),
+  };
+
+  stories.unshift(story);
+  createNotification({
+    userId: person.authorId,
+    actor: author,
+    type: "story",
+    message: `${author.name} adicionou uma história em ${person.fullName}.`,
+    personId: person.id,
+    storyId: story.id,
+  });
+  await saveContent();
+  return { story };
+}
+
+async function createStoryReply(storyId, input, author) {
+  const story = stories.find((item) => item.id === storyId);
+
+  if (!story) return { status: 404, error: "História não encontrada." };
+
+  const parentReply = input.parentReplyId
+    ? (story.replies ?? []).find((reply) => reply.id === input.parentReplyId)
+    : null;
+  const reply = {
+    id: `${storyId}-reply-${Date.now().toString(36)}`,
+    content: input.content,
+    author: author.name,
+    authorId: author.id,
+    authorAvatarUrl: author.avatarUrl,
+    ...(parentReply
+      ? {
+          parentReplyId: parentReply.id,
+          targetAuthor: parentReply.author,
+          targetAuthorId: parentReply.authorId,
+        }
+      : {}),
+    createdAt: new Date().toISOString(),
+  };
+
+  story.replies = Array.isArray(story.replies) ? story.replies : [];
+  story.replies.push(reply);
+  createNotification({
+    userId: parentReply?.authorId ?? story.authorId,
+    actor: author,
+    type: parentReply ? "reply" : "story_reply",
+    message: parentReply
+      ? `${author.name} respondeu ${parentReply.author} em uma história.`
+      : `${author.name} respondeu sua história.`,
+    personId: story.personId,
+    storyId: story.id,
+  });
+
+  if (parentReply?.authorId && story.authorId && parentReply.authorId !== story.authorId) {
+    createNotification({
+      userId: story.authorId,
+      actor: author,
+      type: "story_reply",
+      message: `${author.name} comentou em uma conversa da sua história.`,
+      personId: story.personId,
+      storyId: story.id,
+    });
+  }
+
+  await saveContent();
+
+  return { reply };
+}
+
 async function updateMemory(id, input, user) {
   const index = people.findIndex((item) => item.id === id);
 
@@ -213,6 +316,16 @@ async function toggleLike(id, user) {
   const alreadyLiked = likedBy.includes(user.id);
   person.likedBy = alreadyLiked ? likedBy.filter((userId) => userId !== user.id) : [...likedBy, user.id];
   person.likeCount = person.likedBy.length;
+
+  if (!alreadyLiked) {
+    createNotification({
+      userId: person.authorId,
+      actor: user,
+      type: "like",
+      message: `${user.name} curtiu sua memória de ${person.fullName}.`,
+      personId: person.id,
+    });
+  }
 
   await saveContent();
   return { person, liked: !alreadyLiked };
@@ -275,6 +388,30 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST" && path === "/api/auth/logout") {
       const token = req.headers.authorization?.replace("Bearer ", "");
       logoutUser(token);
+      send(res, 200, { ok: true });
+      return;
+    }
+
+    if (req.method === "GET" && path === "/api/notifications") {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+
+      send(
+        res,
+        200,
+        notifications.filter((notification) => notification.userId === user.id),
+      );
+      return;
+    }
+
+    if (req.method === "POST" && path === "/api/notifications/read") {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+
+      notifications.forEach((notification) => {
+        if (notification.userId === user.id) notification.read = true;
+      });
+      await saveContent();
       send(res, 200, { ok: true });
       return;
     }
@@ -396,6 +533,39 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && path === "/api/stories") {
       const personId = url.searchParams.get("personId");
       send(res, 200, personId ? stories.filter((story) => story.personId === personId) : stories);
+      return;
+    }
+
+    if (req.method === "POST" && path === "/api/stories") {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+
+      const body = await readBody(req);
+      const result = await createStory(body, user);
+
+      if (result.error) {
+        send(res, result.status, { message: result.error });
+        return;
+      }
+
+      send(res, 201, result.story);
+      return;
+    }
+
+    if (req.method === "POST" && path.startsWith("/api/stories/") && path.endsWith("/replies")) {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+
+      const storyId = decodeURIComponent(path.split("/").at(-2) ?? "");
+      const body = await readBody(req);
+      const result = await createStoryReply(storyId, body, user);
+
+      if (result.error) {
+        send(res, result.status, { message: result.error });
+        return;
+      }
+
+      send(res, 201, result.reply);
       return;
     }
 

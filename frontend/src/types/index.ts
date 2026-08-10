@@ -59,7 +59,36 @@ export interface Story {
   title: string;
   content: string;
   author: string;
+  authorId?: string;
+  authorAvatarUrl?: string;
   year?: string;
+  replies?: StoryReply[];
+  createdAt: string;
+}
+
+export interface StoryReply {
+  id: string;
+  content: string;
+  author: string;
+  authorId?: string;
+  authorAvatarUrl?: string;
+  parentReplyId?: string;
+  targetAuthor?: string;
+  targetAuthorId?: string;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  actorId: string;
+  actorName: string;
+  actorAvatarUrl?: string;
+  type: "like" | "story" | "story_reply" | "reply";
+  message: string;
+  personId?: string;
+  storyId?: string;
+  read: boolean;
   createdAt: string;
 }
 
@@ -94,6 +123,18 @@ export interface UploadPhotoInput {
   approximateDate: string;
   location?: string;
   author?: string;
+}
+
+export interface CreateStoryInput {
+  personId: string;
+  title: string;
+  content: string;
+  year?: string;
+}
+
+export interface CreateStoryReplyInput {
+  content: string;
+  parentReplyId?: string;
 }
 
 export interface Paginated<T> {

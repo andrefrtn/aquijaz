@@ -20,12 +20,18 @@ export const photos = [];
 
 export const stories = [];
 
+export const notifications = [];
+
 async function ensureContentDb() {
   await fs.mkdir(path.dirname(CONTENT_PATH), { recursive: true });
   try {
     await fs.access(CONTENT_PATH);
   } catch {
-    await fs.writeFile(CONTENT_PATH, JSON.stringify({ people: [], photos: [], stories: [] }, null, 2), "utf8");
+    await fs.writeFile(
+      CONTENT_PATH,
+      JSON.stringify({ people: [], photos: [], stories: [], notifications: [] }, null, 2),
+      "utf8",
+    );
   }
 }
 
@@ -36,9 +42,10 @@ export async function loadContent() {
   people.splice(0, people.length, ...(content.people ?? []));
   photos.splice(0, photos.length, ...(content.photos ?? []));
   stories.splice(0, stories.length, ...(content.stories ?? []));
+  notifications.splice(0, notifications.length, ...(content.notifications ?? []));
 }
 
 export async function saveContent() {
   await ensureContentDb();
-  await fs.writeFile(CONTENT_PATH, JSON.stringify({ people, photos, stories }, null, 2), "utf8");
+  await fs.writeFile(CONTENT_PATH, JSON.stringify({ people, photos, stories, notifications }, null, 2), "utf8");
 }

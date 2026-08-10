@@ -14,6 +14,7 @@ import type { Category } from "@/types";
 export const Route = createFileRoute("/explorar")({
   validateSearch: (search: Record<string, unknown>) => ({
     q: typeof search["q"] === "string" ? search["q"] : "",
+    categoria: typeof search["categoria"] === "string" ? search["categoria"] : "Todas",
   }),
   head: () => ({
     meta: [
@@ -36,9 +37,9 @@ export const Route = createFileRoute("/explorar")({
 const PAGE_SIZE = 6;
 
 function ExplorarPage() {
-  const { q } = Route.useSearch();
+  const { q, categoria } = Route.useSearch();
   const navigate = useNavigate();
-  const [category, setCategory] = useState<Category | "Todas">("Todas");
+  const [category, setCategory] = useState<Category | "Todas">(categoria as Category | "Todas");
   const [decade, setDecade] = useState("Todos");
   const [sort, setSort] = useState<SortOrder>("relevantes");
   const [page, setPage] = useState(1);

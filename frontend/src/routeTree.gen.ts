@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdicionarFotoRouteImport } from './routes/adicionar-foto'
+import { Route as AdicionarHistoriaRouteImport } from './routes/adicionar-historia'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CriarMemoriaRouteImport } from './routes/criar-memoria'
 import { Route as ExplorarRouteImport } from './routes/explorar'
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdicionarFotoRoute = AdicionarFotoRouteImport.update({
   id: '/adicionar-foto',
   path: '/adicionar-foto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdicionarHistoriaRoute = AdicionarHistoriaRouteImport.update({
+  id: '/adicionar-historia',
+  path: '/adicionar-historia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroRoute = CadastroRouteImport.update({
@@ -80,6 +86,7 @@ const MemoriaIdRoute = MemoriaIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/adicionar-foto': typeof AdicionarFotoRoute
+  '/adicionar-historia': typeof AdicionarHistoriaRoute
   '/cadastro': typeof CadastroRoute
   '/criar-memoria': typeof CriarMemoriaRoute
   '/explorar': typeof ExplorarRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/adicionar-foto': typeof AdicionarFotoRoute
+  '/adicionar-historia': typeof AdicionarHistoriaRoute
   '/cadastro': typeof CadastroRoute
   '/criar-memoria': typeof CriarMemoriaRoute
   '/explorar': typeof ExplorarRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/adicionar-foto': typeof AdicionarFotoRoute
+  '/adicionar-historia': typeof AdicionarHistoriaRoute
   '/cadastro': typeof CadastroRoute
   '/criar-memoria': typeof CriarMemoriaRoute
   '/explorar': typeof ExplorarRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/adicionar-foto'
+    | '/adicionar-historia'
     | '/cadastro'
     | '/criar-memoria'
     | '/explorar'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/adicionar-foto'
+    | '/adicionar-historia'
     | '/cadastro'
     | '/criar-memoria'
     | '/explorar'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/adicionar-foto'
+    | '/adicionar-historia'
     | '/cadastro'
     | '/criar-memoria'
     | '/explorar'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdicionarFotoRoute: typeof AdicionarFotoRoute
+  AdicionarHistoriaRoute: typeof AdicionarHistoriaRoute
   CadastroRoute: typeof CadastroRoute
   CriarMemoriaRoute: typeof CriarMemoriaRoute
   ExplorarRoute: typeof ExplorarRoute
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/adicionar-foto'
       fullPath: '/adicionar-foto'
       preLoaderRoute: typeof AdicionarFotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/adicionar-historia': {
+      id: '/adicionar-historia'
+      path: '/adicionar-historia'
+      fullPath: '/adicionar-historia'
+      preLoaderRoute: typeof AdicionarHistoriaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -258,6 +278,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdicionarFotoRoute: AdicionarFotoRoute,
+  AdicionarHistoriaRoute: AdicionarHistoriaRoute,
   CadastroRoute: CadastroRoute,
   CriarMemoriaRoute: CriarMemoriaRoute,
   ExplorarRoute: ExplorarRoute,
