@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, MapPin, Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/common/Button";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PersonCard } from "@/components/PersonCard";
+import { SocialListModal } from "@/components/SocialListModal";
 import { formatLongDate } from "@/lib/format";
 import { getCurrentUser } from "@/services/authService";
 import { getPeople } from "@/services/peopleService";
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/perfil")({
 });
 
 function PerfilPage() {
+  const [socialModal, setSocialModal] = useState<"seguindo" | "seguidores" | null>(null);
   const canFetch = typeof window !== "undefined";
   const userQuery = useQuery({ queryKey: ["current-user"], queryFn: getCurrentUser, enabled: canFetch });
   const peopleQuery = useQuery({
@@ -42,21 +45,32 @@ function PerfilPage() {
       <header className="border-b border-border pb-10">
         <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
           <div className="flex min-w-0 items-center gap-5">
-            <img
-  src={user?.avatarUrl ?? userNoPhoto}
-  alt={`Retrato de ${user?.name ?? "usuário"}`}
-  className="h-20 w-20 shrink-0 rounded-full border border-border object-cover scale-125"
-/>
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-border">
+                  <img
+              src={user?.avatarUrl ?? userNoPhoto}
+              alt={`Retrato de ${user?.name ?? "usuário"}`}
+              className="h-20 w-20 shrink-0 rounded-full border border-border object-cover scale-125"
+            />
+                </div>
             <div className="min-w-0">
+              <p className="rule-label text-sage">Perfil</p>
               <h1 className="font-display truncate text-3xl leading-tight md:text-4xl">{user?.name ?? "—"}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                 <span className="truncate">{user?.email}</span>
-                <span className="text-foreground">
+                <button
+                  type="button"
+                  onClick={() => setSocialModal("seguindo")}
+                  className="text-foreground transition-colors hover:text-primary"
+                >
                   <strong className="font-semibold">{friendCount}</strong> seguindo
-                </span>
-                <span className="text-foreground">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSocialModal("seguidores")}
+                  className="text-foreground transition-colors hover:text-primary"
+                >
                   <strong className="font-semibold">{friendCount}</strong> seguidores
-                </span>
+                </button>
               </div>
             </div>
           </div>
@@ -100,6 +114,14 @@ function PerfilPage() {
           )}
         </div>
       </section>
+
+      {socialModal ? (
+        <SocialListModal
+          title={socialModal === "seguindo" ? "Seguindo" : "Seguidores"}
+          ids={user?.friends ?? []}
+          onClose={() => setSocialModal(null)}
+        />
+      ) : null}
     </div>
   );
 }

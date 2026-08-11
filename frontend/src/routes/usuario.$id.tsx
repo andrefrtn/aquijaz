@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, MapPin, UserCheck, UserMinus, UserPlus } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/common/Button";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PersonCard } from "@/components/PersonCard";
+import { SocialListModal } from "@/components/SocialListModal";
 import { ApiError } from "@/lib/api/client";
 import { formatLongDate } from "@/lib/format";
 import { getCurrentUser, getToken } from "@/services/authService";
@@ -27,6 +29,7 @@ export const Route = createFileRoute("/usuario/$id")({
 
 function PublicPerfilPage() {
   const { id } = Route.useParams();
+  const [socialModal, setSocialModal] = useState<"seguindo" | "seguidores" | null>(null);
   const queryClient = useQueryClient();
   const canFetch = typeof window !== "undefined";
   const hasToken = canFetch && Boolean(getToken());
@@ -158,12 +161,20 @@ function PublicPerfilPage() {
               <h1 className="font-display truncate text-3xl leading-tight md:text-4xl">{profile.name}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                 <span>{profile.city || "Cidade não informada"}</span>
-                <span className="text-foreground">
+                <button
+                  type="button"
+                  onClick={() => setSocialModal("seguindo")}
+                  className="text-foreground transition-colors hover:text-primary"
+                >
                   <strong className="font-semibold">{friendCount}</strong> seguindo
-                </span>
-                <span className="text-foreground">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSocialModal("seguidores")}
+                  className="text-foreground transition-colors hover:text-primary"
+                >
                   <strong className="font-semibold">{friendCount}</strong> seguidores
-                </span>
+                </button>
               </div>
             </div>
           </div>
@@ -203,6 +214,14 @@ function PublicPerfilPage() {
           )}
         </div>
       </section>
+
+      {socialModal ? (
+        <SocialListModal
+          title={socialModal === "seguindo" ? "Seguindo" : "Seguidores"}
+          ids={profile.friends ?? []}
+          onClose={() => setSocialModal(null)}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/common/Button";
@@ -19,7 +19,6 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,7 +36,7 @@ function LoginPage() {
     try {
       await signIn(email, password);
       toast.success("Sessão iniciada com sucesso.");
-      void navigate({ to: "/perfil" });
+      window.location.assign("/perfil");
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "Não foi possível entrar agora.";
       setErrors({ password: message });

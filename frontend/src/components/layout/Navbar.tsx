@@ -42,16 +42,16 @@ export function Navbar() {
   });
   const user = userQuery.data;
 
- async function handleLogout() {
-  try {
-    await logout();
-  } catch {
-    clearToken();
-  } finally {
-    setOpen(false);
-    window.location.reload();
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      clearToken();
+    } finally {
+      setOpen(false);
+      window.location.reload();
+    }
   }
-}
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-[2px]">
@@ -83,7 +83,7 @@ export function Navbar() {
           <FriendRequestsMenu />
           <NotificationBell />
           <Link
-            to={{ pathname: "/explorar", search: {} }}
+            to="/explorar"
             aria-label="Pesquisar memórias"
             className="hidden h-11 w-11 items-center justify-center border border-border text-foreground transition-colors hover:border-primary hover:text-primary sm:inline-flex"
           >

@@ -1,7 +1,10 @@
-﻿@import "tailwindcss";
+﻿@import "tailwindcss" source(none);
+@source "../src";
 @import "tw-animate-css";
 
-:root {
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
   --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
@@ -188,15 +191,16 @@
   }
 }
 
-
 @keyframes hero-photo-in {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(1.03);
+    transform: translateY(18px) scale(0.96);
+    filter: grayscale(1) blur(4px);
   }
 
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+    filter: grayscale(1) blur(0);
   }
 }

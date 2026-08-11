@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/common/Button";
@@ -23,7 +23,6 @@ export const Route = createFileRoute("/cadastro")({
 });
 
 function CadastroPage() {
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
@@ -49,7 +48,7 @@ function CadastroPage() {
       await signUp(name.trim(), email.trim(), password, city.trim(), avatarUrl);
       await signIn(email.trim(), password);
       toast.success("Conta criada e sessão iniciada com sucesso.");
-      void navigate({ to: "/perfil" });
+      window.location.assign("/perfil");
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "Não foi possível criar a conta agora.";
       toast.error(message);
