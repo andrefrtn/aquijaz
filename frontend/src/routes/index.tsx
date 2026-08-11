@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Archive, ArrowRight, BookOpen, Film, Landmark, Music, Palette, Trophy, UsersRound } from "lucide-react";
-import { Button } from "@/components/common/Button";
 import { LoadingState } from "@/components/common/LoadingState";
 import { FeaturedMemory } from "@/components/FeaturedMemory";
 import { PersonCard } from "@/components/PersonCard";
@@ -30,18 +29,18 @@ export const Route = createFileRoute("/")({
 
 const heroPhotos = [
   {
-    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&h=1100&q=80",
-    alt: "Retrato em preto e branco de uma mulher",
+    src: "https://i.pinimg.com/736x/50/ec/c9/50ecc97648a99f3e5db57b80c1babedd.jpg",
+    alt: "Retrato em preto idosos",
     className: "col-span-2 aspect-[4/5]",
   },
   {
-    src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=700&h=700&q=80",
-    alt: "Grupo de pessoas reunidas em uma fotografia de mem?ria",
+    src: "https://media.istockphoto.com/id/611101364/pt/foto/family-beach-vacations.jpg?s=170667a&w=0&k=20&c=wCsrGcoGXkohoUsaeMQoCP8LFY6xZapUWGShto2l-L0=",
+    alt: "Grupo de pessoas reunidas em uma fotografia de memoria",
     className: "aspect-square mt-6",
   },
   {
-    src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&h=950&q=80",
-    alt: "Retrato em preto e branco de um homem",
+    src: "https://www.esquerdadiario.com.br/IMG/logo/1000475324.jpg",
+    alt: "lo borges",
     className: "aspect-[3/4]",
   },
 ];
@@ -79,17 +78,22 @@ function Index() {
               nossas vidas.
             </p>
             <div className="mt-6 max-w-xl">
-              <SearchBar onSearch={(term) => void navigate({ to: "/explorar", search: { q: term } })} />
+              <SearchBar onSearch={(term) => void navigate({ to: "/explorar", search: { q: term, categoria: "" } })} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            {heroPhotos.map((photo) => (
+            {heroPhotos.map((photo, index) => (
               <div key={photo.src} className={`border border-border bg-beige ${photo.className}`}>
                 <img
                   src={photo.src}
                   alt={photo.alt}
-                  className="h-full w-full object-cover grayscale"
+                  className="h-full w-full object-cover grayscale opacity-0 animate-[hero-photo-in_650ms_cubic-bezier(0.22,1,0.36,1)_forwards]"
+                  style={{ 
+  animationDelay: `${index * 140}ms`, 
+  transform: 'scale(0.8)' 
+}}
+
                 />
               </div>
             ))}
@@ -132,7 +136,7 @@ function Index() {
                 Explore memórias
               </h2>
             </div>
-            <Link to="/explorar" search={{ q: "" }} className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+            <Link to="/explorar" search={{ q: "", categoria: "" }} className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
               Ver arquivo completo <ArrowRight size={15} aria-hidden="true" />
             </Link>
           </div>
@@ -165,7 +169,7 @@ function Index() {
           <h2 id="recentes" className="font-display text-3xl md:text-4xl">
             Memórias adicionadas recentemente
           </h2>
-          <Link to="/explorar" search={{ q: "" }} className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+          <Link to="/explorar" search={{ q: "", categoria: "" }} className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
             Explorar arquivo <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </div>

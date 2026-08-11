@@ -7,6 +7,7 @@ import { PersonCard } from "@/components/PersonCard";
 import { formatLongDate } from "@/lib/format";
 import { getCurrentUser } from "@/services/authService";
 import { getPeople } from "@/services/peopleService";
+import userNoPhoto from "@/components/images/usernophoto.png";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
@@ -42,15 +43,11 @@ function PerfilPage() {
         <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
           <div className="flex min-w-0 items-center gap-5">
             <img
-              src={
-                user?.avatarUrl ??
-                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&h=300&q=80"
-              }
-              alt={`Retrato de ${user?.name ?? "usuária"}`}
-              className="h-20 w-20 shrink-0 rounded-full border border-border object-cover"
-            />
+  src={user?.avatarUrl ?? userNoPhoto}
+  alt={`Retrato de ${user?.name ?? "usuário"}`}
+  className="h-20 w-20 shrink-0 rounded-full border border-border object-cover scale-125"
+/>
             <div className="min-w-0">
-              <p className="rule-label text-sage">Perfil</p>
               <h1 className="font-display truncate text-3xl leading-tight md:text-4xl">{user?.name ?? "—"}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                 <span className="truncate">{user?.email}</span>

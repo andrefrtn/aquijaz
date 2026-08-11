@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { LogOut, Menu, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
@@ -15,7 +15,6 @@ const links = [
 ] as const;
 
 export function Navbar() {
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [authVersion, setAuthVersion] = useState(0);
   const hasToken = typeof window !== "undefined" && Boolean(getToken());
@@ -43,15 +42,16 @@ export function Navbar() {
   });
   const user = userQuery.data;
 
-  async function handleLogout() {
-    try {
-      await logout();
-    } catch {
-      clearToken();
-    }
+ async function handleLogout() {
+  try {
+    await logout();
+  } catch {
+    clearToken();
+  } finally {
     setOpen(false);
-    void navigate({ to: "/" });
+    window.location.reload();
   }
+}
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-[2px]">
@@ -83,7 +83,7 @@ export function Navbar() {
           <FriendRequestsMenu />
           <NotificationBell />
           <Link
-            to="/explorar"
+            to={{ pathname: "/explorar", search: {} }}
             aria-label="Pesquisar memórias"
             className="hidden h-11 w-11 items-center justify-center border border-border text-foreground transition-colors hover:border-primary hover:text-primary sm:inline-flex"
           >
