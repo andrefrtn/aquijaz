@@ -50,9 +50,9 @@ function LoginPage() {
     <div className="mx-auto grid max-w-[1400px] gap-14 px-5 py-16 md:grid-cols-2 md:px-10 md:py-24">
       <div className="hidden border border-border bg-beige md:block">
         <img
-          src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&h=1100&q=80"
-          alt="Composição de fotografias antigas sobre uma mesa"
-          className="h-full w-full object-cover grayscale"
+          src="https://images.pexels.com/photos/30487500/pexels-photo-30487500.jpeg"
+          alt="anjo"
+          className="h-180 w-full object-cover grayscale"
         />
       </div>
       <div className="flex flex-col justify-center">

@@ -9,7 +9,11 @@ import { SocialListModal } from "@/components/SocialListModal";
 import { formatLongDate } from "@/lib/format";
 import { getCurrentUser } from "@/services/authService";
 import { getPeople } from "@/services/peopleService";
-import userNoPhoto from "@/components/images/usernophoto.png";
+import usernophoto from "@/components/images/usernophoto.png";
+
+const userNoPhoto = usernophoto;
+
+
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({

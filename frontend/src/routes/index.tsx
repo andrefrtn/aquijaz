@@ -30,18 +30,18 @@ export const Route = createFileRoute("/")({
 
 const heroPhotos = [
   {
-    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&h=1100&q=80",
-    alt: "Retrato em preto e branco de uma mulher",
+    src: "https://images.pexels.com/photos/35077931/pexels-photo-35077931.jpeg",
+    alt: "loja de brinquedo",
     className: "col-span-2 aspect-[4/5]",
   },
   {
-    src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=700&h=700&q=80",
-    alt: "Grupo de pessoas reunidas em uma fotografia de mem?ria",
+    src: "https://images.pexels.com/photos/37194807/pexels-photo-37194807.jpeg",
+    alt: "idosos",
     className: "aspect-square mt-6",
   },
   {
-    src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&h=950&q=80",
-    alt: "Retrato em preto e branco de um homem",
+    src: "https://images.pexels.com/photos/19226414/pexels-photo-19226414.jpeg",
+    alt: "bicicleta",
     className: "aspect-[3/4]",
   },
 ];

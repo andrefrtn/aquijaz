@@ -99,7 +99,7 @@ export function Navbar() {
             </Button>
           ) : null}
           <Button asChild size="sm" className="hidden sm:inline-flex">
-            <Link to="/criar-memoria">
+            <Link to={user ? "/criar-memoria" : "/login"}>
               <Plus size={15} aria-hidden="true" />
               Criar memória
             </Link>
@@ -149,7 +149,7 @@ export function Navbar() {
             ) : null}
             <div className="py-4">
               <Button asChild className="w-full">
-                <Link to="/criar-memoria" onClick={() => setOpen(false)}>
+                <Link to={user ? "/criar-memoria" : "/login"} onClick={() => setOpen(false)}>
                   <Plus size={15} aria-hidden="true" />
                   Criar memória
                 </Link>
