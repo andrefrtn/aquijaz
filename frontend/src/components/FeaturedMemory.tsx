@@ -16,7 +16,7 @@ export function FeaturedMemory({ person }: FeaturedMemoryProps) {
         <img
           src={person.coverPhotoUrl}
           alt={`Fotografia principal de ${person.fullName}`}
-          className="aspect-[4/5] w-full object-cover grayscale"
+          className="aspect-[4/5] w-full object-cover "
         />
       </div>
       <div className="flex flex-col justify-center">

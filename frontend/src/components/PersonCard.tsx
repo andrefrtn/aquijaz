@@ -21,7 +21,7 @@ export function PersonCard({ person }: PersonCardProps) {
             src={person.coverPhotoUrl}
             alt={`Fotografia de ${person.knownAs ?? person.fullName}`}
             loading="lazy"
-            className="aspect-[3/4] w-full object-cover grayscale transition-transform duration-500 group-hover:scale-[1.02]"
+            className="aspect-[3/4] w-full object-cover  transition-transform duration-500 group-hover:scale-[1.02]"
           />
         </div>
         <p className="rule-label mt-4 text-sage">{person.category}</p>

@@ -19,7 +19,7 @@ export function MemoryHeader({ person, photoCount, canManage = false, onDelete }
         <img
           src={person.coverPhotoUrl}
           alt={`Fotografia principal de ${person.fullName}`}
-          className="aspect-[3/4] w-full object-cover grayscale"
+          className="aspect-[3/4] w-full object-cover "
         />
       </div>
       <div className="flex flex-col justify-center">
