@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, MapPin, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PersonCard } from "@/components/PersonCard";
 import { SocialListModal } from "@/components/SocialListModal";
 import { formatLongDate } from "@/lib/format";
-import { getCurrentUser } from "@/services/authService";
+import { clearToken, getCurrentUser } from "@/services/authService";
 import { getPeople } from "@/services/peopleService";
 import usernophoto from "@/components/images/usernophoto.png";
 
@@ -39,6 +39,13 @@ function PerfilPage() {
     queryFn: () => getPeople({ pageSize: 100, sort: "az" }),
     enabled: canFetch,
   });
+
+    useEffect(() => {
+    if (userQuery.isError) {
+      clearToken();
+      window.location.assign("/login");
+    }
+  }, [userQuery.isError]);
 
   const user = userQuery.data;
   const authoredPeople = peopleQuery.data?.items.filter((person) => person.authorId === user?.id) ?? [];
