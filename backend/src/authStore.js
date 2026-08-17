@@ -1,30 +1,8 @@
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { DEFAULT_AVATAR_URL } from "./data.js";
+import { supabase } from "./supabase.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.resolve(__dirname, "../data/users.json");
 const sessions = new Map();
-
-async function ensureDb() {
-  await fs.mkdir(path.dirname(DB_PATH), { recursive: true });
-  try {
-    await fs.access(DB_PATH);
-  } catch {
-    await fs.writeFile(DB_PATH, "[]", "utf8");
-  }
-}
-
-async function readUsers() {
-  await ensureDb();
-  return JSON.parse(await fs.readFile(DB_PATH, "utf8"));
-}
-
-async function writeUsers(users) {
-  await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2), "utf8");
-}
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
   const hash = crypto.scryptSync(password, salt, 64).toString("hex");
@@ -37,46 +15,77 @@ function verifyPassword(password, stored) {
   return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(next));
 }
 
-function publicUser(user) {
-  normalizeSocialFields(user);
+function toAppUser(user) {
   return {
     id: user.id,
     name: user.name,
     email: user.email,
     city: user.city ?? "",
-    memberSince: user.memberSince,
-    avatarUrl: user.avatarUrl || DEFAULT_AVATAR_URL,
-    friends: user.friends,
-    incomingFriendRequests: user.incomingFriendRequests,
-    outgoingFriendRequests: user.outgoingFriendRequests,
+    memberSince: user.member_since,
+    avatarUrl: user.avatar_url || DEFAULT_AVATAR_URL,
+    friends: user.friends ?? [],
+    incomingFriendRequests: user.incoming_friend_requests ?? [],
+    outgoingFriendRequests: user.outgoing_friend_requests ?? [],
+  };
+}
+
+function publicUser(user) {
+  const appUser = toAppUser(user);
+
+  return {
+    id: appUser.id,
+    name: appUser.name,
+    email: appUser.email,
+    city: appUser.city,
+    memberSince: appUser.memberSince,
+    avatarUrl: appUser.avatarUrl,
+    friends: appUser.friends,
+    incomingFriendRequests: appUser.incomingFriendRequests,
+    outgoingFriendRequests: appUser.outgoingFriendRequests,
   };
 }
 
 function publicProfile(user) {
-  normalizeSocialFields(user);
+  const appUser = toAppUser(user);
+
   return {
-    id: user.id,
-    name: user.name,
-    city: user.city ?? "",
-    memberSince: user.memberSince,
-    avatarUrl: user.avatarUrl || DEFAULT_AVATAR_URL,
-    friends: user.friends,
+    id: appUser.id,
+    name: appUser.name,
+    city: appUser.city,
+    memberSince: appUser.memberSince,
+    avatarUrl: appUser.avatarUrl,
+    friends: appUser.friends,
   };
 }
 
-function normalizeSocialFields(user) {
-  user.friends = Array.isArray(user.friends) ? user.friends : [];
-  user.incomingFriendRequests = Array.isArray(user.incomingFriendRequests) ? user.incomingFriendRequests : [];
-  user.outgoingFriendRequests = Array.isArray(user.outgoingFriendRequests) ? user.outgoingFriendRequests : [];
-  return user;
+async function findUserById(id) {
+  const { data, error } = await supabase.from("users").select("*").eq("id", id).maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+async function findUserByEmail(email) {
+  const { data, error } = await supabase.from("users").select("*").eq("email", email).maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+async function updateUser(id, patch) {
+  const { data, error } = await supabase.from("users").update(patch).eq("id", id).select("*").single();
+
+  if (error) throw error;
+  return data;
 }
 
 export async function registerUser({ name, email, password, city = "", avatarUrl = "" }) {
-  const users = await readUsers();
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedCity = city.trim();
 
-  if (users.some((user) => user.email === normalizedEmail)) {
+  const existingUser = await findUserByEmail(normalizedEmail);
+
+  if (existingUser) {
     return { error: "Este e-mail já está cadastrado.", status: 409 };
   }
 
@@ -84,31 +93,34 @@ export async function registerUser({ name, email, password, city = "", avatarUrl
     return { error: "Informe sua cidade.", status: 400 };
   }
 
-  const user = {
-    id: crypto.randomUUID(),
-    name: name.trim(),
-    email: normalizedEmail,
-    passwordHash: hashPassword(password),
-    city: normalizedCity,
-    memberSince: new Date().toISOString().slice(0, 10),
-    avatarUrl: avatarUrl.trim() || DEFAULT_AVATAR_URL,
-    friends: [],
-    incomingFriendRequests: [],
-    outgoingFriendRequests: [],
-  };
+  const { data: user, error } = await supabase
+    .from("users")
+    .insert({
+      name: name.trim(),
+      email: normalizedEmail,
+      password_hash: hashPassword(password),
+      city: normalizedCity,
+      member_since: new Date().toISOString().slice(0, 10),
+      avatar_url: avatarUrl.trim() || DEFAULT_AVATAR_URL,
+      friends: [],
+      incoming_friend_requests: [],
+      outgoing_friend_requests: [],
+    })
+    .select("*")
+    .single();
 
-  users.push(user);
-  await writeUsers(users);
+  if (error) {
+    return { error: error.message, status: 500 };
+  }
 
   return { user: publicUser(user) };
 }
 
 export async function loginUser({ email, password }) {
-  const users = await readUsers();
   const normalizedEmail = email.trim().toLowerCase();
-  const user = users.find((item) => item.email === normalizedEmail);
+  const user = await findUserByEmail(normalizedEmail);
 
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  if (!user || !verifyPassword(password, user.password_hash)) {
     return { error: "E-mail ou senha inválidos.", status: 401 };
   }
 
@@ -121,9 +133,8 @@ export async function loginUser({ email, password }) {
 export async function getUserByToken(token) {
   if (!token || !sessions.has(token)) return null;
 
-  const users = await readUsers();
   const userId = sessions.get(token);
-  const user = users.find((item) => item.id === userId);
+  const user = await findUserById(userId);
 
   return user ? publicUser(user) : null;
 }
@@ -133,77 +144,83 @@ export function logoutUser(token) {
 }
 
 export async function getPublicUserById(id) {
-  const users = await readUsers();
-  const user = users.find((item) => item.id === id);
+  const user = await findUserById(id);
 
   return user ? publicProfile(user) : null;
 }
 
 export async function requestFriendship(fromUserId, toUserId) {
-  const users = await readUsers();
-  const fromUser = users.find((item) => item.id === fromUserId);
-  const toUser = users.find((item) => item.id === toUserId);
+  const fromUser = await findUserById(fromUserId);
+  const toUser = await findUserById(toUserId);
 
   if (!fromUser || !toUser) return { error: "Usuário não encontrado.", status: 404 };
   if (fromUser.id === toUser.id) return { error: "Você não pode adicionar a si mesmo.", status: 400 };
 
-  normalizeSocialFields(fromUser);
-  normalizeSocialFields(toUser);
+  const fromOutgoing = fromUser.outgoing_friend_requests ?? [];
+  const fromFriends = fromUser.friends ?? [];
+  const toIncoming = toUser.incoming_friend_requests ?? [];
 
-  if (fromUser.friends.includes(toUser.id)) return { status: 200, profile: publicProfile(toUser), state: "friends" };
-  if (fromUser.outgoingFriendRequests.includes(toUser.id)) {
+  if (fromFriends.includes(toUser.id)) return { status: 200, profile: publicProfile(toUser), state: "friends" };
+  if (fromOutgoing.includes(toUser.id)) {
     return { status: 200, profile: publicProfile(toUser), state: "pending" };
   }
 
-  fromUser.outgoingFriendRequests.push(toUser.id);
-  toUser.incomingFriendRequests.push(fromUser.id);
-  await writeUsers(users);
+  const updatedToUser = await updateUser(toUser.id, {
+    incoming_friend_requests: [...toIncoming, fromUser.id],
+  });
 
-  return { status: 201, profile: publicProfile(toUser), state: "pending" };
+  await updateUser(fromUser.id, {
+    outgoing_friend_requests: [...fromOutgoing, toUser.id],
+  });
+
+  return { status: 201, profile: publicProfile(updatedToUser), state: "pending" };
 }
 
 export async function acceptFriendship(currentUserId, requesterId) {
-  const users = await readUsers();
-  const currentUser = users.find((item) => item.id === currentUserId);
-  const requester = users.find((item) => item.id === requesterId);
+  const currentUser = await findUserById(currentUserId);
+  const requester = await findUserById(requesterId);
 
   if (!currentUser || !requester) return { error: "Usuário não encontrado.", status: 404 };
 
-  normalizeSocialFields(currentUser);
-  normalizeSocialFields(requester);
+  const incoming = currentUser.incoming_friend_requests ?? [];
+  const requesterOutgoing = requester.outgoing_friend_requests ?? [];
+  const currentFriends = currentUser.friends ?? [];
+  const requesterFriends = requester.friends ?? [];
 
-  if (!currentUser.incomingFriendRequests.includes(requester.id)) {
+  if (!incoming.includes(requester.id)) {
     return { error: "Solicitação não encontrada.", status: 404 };
   }
 
-  currentUser.incomingFriendRequests = currentUser.incomingFriendRequests.filter((id) => id !== requester.id);
-  requester.outgoingFriendRequests = requester.outgoingFriendRequests.filter((id) => id !== currentUser.id);
-  if (!currentUser.friends.includes(requester.id)) currentUser.friends.push(requester.id);
-  if (!requester.friends.includes(currentUser.id)) requester.friends.push(currentUser.id);
+  await updateUser(currentUser.id, {
+    incoming_friend_requests: incoming.filter((id) => id !== requester.id),
+    friends: currentFriends.includes(requester.id) ? currentFriends : [...currentFriends, requester.id],
+  });
 
-  await writeUsers(users);
+  const updatedRequester = await updateUser(requester.id, {
+    outgoing_friend_requests: requesterOutgoing.filter((id) => id !== currentUser.id),
+    friends: requesterFriends.includes(currentUser.id) ? requesterFriends : [...requesterFriends, currentUser.id],
+  });
 
-  return { profile: publicProfile(requester) };
+  return { profile: publicProfile(updatedRequester) };
 }
 
 export async function removeFriendship(currentUserId, otherUserId) {
-  const users = await readUsers();
-  const currentUser = users.find((item) => item.id === currentUserId);
-  const otherUser = users.find((item) => item.id === otherUserId);
+  const currentUser = await findUserById(currentUserId);
+  const otherUser = await findUserById(otherUserId);
 
   if (!currentUser || !otherUser) return { error: "Usuário não encontrado.", status: 404 };
 
-  normalizeSocialFields(currentUser);
-  normalizeSocialFields(otherUser);
+  const updatedOtherUser = await updateUser(otherUser.id, {
+    friends: (otherUser.friends ?? []).filter((id) => id !== currentUser.id),
+    incoming_friend_requests: (otherUser.incoming_friend_requests ?? []).filter((id) => id !== currentUser.id),
+    outgoing_friend_requests: (otherUser.outgoing_friend_requests ?? []).filter((id) => id !== currentUser.id),
+  });
 
-  currentUser.friends = currentUser.friends.filter((id) => id !== otherUser.id);
-  otherUser.friends = otherUser.friends.filter((id) => id !== currentUser.id);
-  currentUser.incomingFriendRequests = currentUser.incomingFriendRequests.filter((id) => id !== otherUser.id);
-  currentUser.outgoingFriendRequests = currentUser.outgoingFriendRequests.filter((id) => id !== otherUser.id);
-  otherUser.incomingFriendRequests = otherUser.incomingFriendRequests.filter((id) => id !== currentUser.id);
-  otherUser.outgoingFriendRequests = otherUser.outgoingFriendRequests.filter((id) => id !== currentUser.id);
+  await updateUser(currentUser.id, {
+    friends: (currentUser.friends ?? []).filter((id) => id !== otherUser.id),
+    incoming_friend_requests: (currentUser.incoming_friend_requests ?? []).filter((id) => id !== otherUser.id),
+    outgoing_friend_requests: (currentUser.outgoing_friend_requests ?? []).filter((id) => id !== otherUser.id),
+  });
 
-  await writeUsers(users);
-
-  return { profile: publicProfile(otherUser) };
+  return { profile: publicProfile(updatedOtherUser) };
 }
