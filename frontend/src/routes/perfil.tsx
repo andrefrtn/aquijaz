@@ -33,19 +33,34 @@ export const Route = createFileRoute("/perfil")({
 function PerfilPage() {
   const [socialModal, setSocialModal] = useState<"seguindo" | "seguidores" | null>(null);
   const canFetch = typeof window !== "undefined";
-  const userQuery = useQuery({ queryKey: ["current-user"], queryFn: getCurrentUser, enabled: canFetch });
+  const userQuery = useQuery({
+    queryKey: ["current-user"],
+    queryFn: getCurrentUser,
+    enabled: canFetch,
+    retry: false,
+  });
   const peopleQuery = useQuery({
     queryKey: ["people", "perfil"],
     queryFn: () => getPeople({ pageSize: 100, sort: "az" }),
     enabled: canFetch,
   });
 
-    useEffect(() => {
+  useEffect(() => {
     if (userQuery.isError) {
       clearToken();
       window.location.assign("/login");
     }
   }, [userQuery.isError]);
+
+  if (userQuery.isPending) {
+    return (
+      <div className="mx-auto max-w-[1400px] px-5 py-12 md:px-10 md:py-16">
+        <LoadingState count={3} />
+      </div>
+    );
+  }
+
+  if (!userQuery.data) return null;
 
   const user = userQuery.data;
   const authoredPeople = peopleQuery.data?.items.filter((person) => person.authorId === user?.id) ?? [];

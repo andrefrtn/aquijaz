@@ -2,7 +2,46 @@ import crypto from "node:crypto";
 import { DEFAULT_AVATAR_URL } from "./data.js";
 import { supabase } from "./supabase.js";
 
-const sessions = new Map();
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+
+function getSessionSecret() {
+  return process.env.SESSION_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "aquijaz-dev-secret";
+}
+
+function signPayload(payload) {
+  return crypto.createHmac("sha256", getSessionSecret()).update(payload).digest("base64url");
+}
+
+function createSessionToken(userId) {
+  const payload = Buffer.from(
+    JSON.stringify({
+      userId,
+      expiresAt: Date.now() + SESSION_TTL_MS,
+    }),
+  ).toString("base64url");
+
+  return `${payload}.${signPayload(payload)}`;
+}
+
+function readSessionToken(token) {
+  if (!token || !token.includes(".")) return null;
+
+  const [payload, signature] = token.split(".");
+  const expectedSignature = signPayload(payload);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+
+  if (signatureBuffer.length !== expectedBuffer.length) return null;
+  if (!crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) return null;
+
+  try {
+    const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!session.userId || Number(session.expiresAt) < Date.now()) return null;
+    return session;
+  } catch {
+    return null;
+  }
+}
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
   const hash = crypto.scryptSync(password, salt, 64).toString("hex");
@@ -124,23 +163,22 @@ export async function loginUser({ email, password }) {
     return { error: "E-mail ou senha inválidos.", status: 401 };
   }
 
-  const token = crypto.randomUUID();
-  sessions.set(token, user.id);
+  const token = createSessionToken(user.id);
 
   return { token, user: publicUser(user) };
 }
 
 export async function getUserByToken(token) {
-  if (!token || !sessions.has(token)) return null;
+  const session = readSessionToken(token);
+  if (!session) return null;
 
-  const userId = sessions.get(token);
-  const user = await findUserById(userId);
+  const user = await findUserById(session.userId);
 
   return user ? publicUser(user) : null;
 }
 
 export function logoutUser(token) {
-  sessions.delete(token);
+  return Boolean(token);
 }
 
 export async function getPublicUserById(id) {
