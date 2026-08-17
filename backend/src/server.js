@@ -1,4 +1,5 @@
-﻿import http from "node:http";
+﻿import { supabase } from "./supabase.js";
+import http from "node:http";
 import {
   DEFAULT_GALLERY_PHOTO_URL,
   DEFAULT_MEMORY_PHOTO_URL,
@@ -350,6 +351,19 @@ const server = http.createServer(async (req, res) => {
 
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
     const path = url.pathname;
+
+
+    if (req.method === "GET" && path === "/api/health/supabase") {
+  const { error } = await supabase.from("users").select("id").limit(1);
+
+  if (error) {
+    send(res, 500, { ok: false, message: error.message });
+    return;
+  }
+
+  send(res, 200, { ok: true });
+  return;
+}
 
     if (req.method === "GET" && path === "/api/health") {
       send(res, 200, { ok: true, service: "aquijaz-backend" });
